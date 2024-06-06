@@ -8,17 +8,14 @@ import androidx.paging.map
 import com.kirillm.iconsdata.IconsRepository
 import com.kirillm.iconsdata.model.Icon
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEmpty
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,35 +23,42 @@ class MainScreenViewModel @Inject constructor(
     private val iconsRepository: IconsRepository,
 ) : ViewModel() {
 
-    private val _query: MutableStateFlow<String> = MutableStateFlow("")
-
-    val query: StateFlow<String>
-        get() = _query.asStateFlow()
-
+    private val query: MutableStateFlow<String> = MutableStateFlow("")
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<PagingData<IconUI>> = query
-        .map { query ->
-            if(query.isNotEmpty()) {
-                iconsRepository.getIcons(
-                    query
-                )
-            } else {
-                flowOf(PagingData.empty())
-            }
-        }
-        .flatMapConcat { pagingDataFlow ->
-            pagingDataFlow.map { pagingData ->
-                pagingData.map(Icon::mapToUI)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
+
+    private val _state: MutableStateFlow<PagingData<IconUI>> = MutableStateFlow(PagingData.empty())
+    val state: StateFlow<PagingData<IconUI>> = _state.asStateFlow()
+
+    init {
+        fetchIcons()
+    }
 
     fun search(s: String) {
-        _query.value = s
+        Log.d("MainScreenViewModel", "search: $s")
+        query.value = s.trim()
+    }
+
+    private fun fetchIcons() {
+        viewModelScope.launch {
+            query.map { querySearch ->
+                if (querySearch.isNotEmpty()) {
+                    iconsRepository.getIcons(
+                        querySearch
+                    ).onEach {
+                    }
+                } else {
+                    flowOf(PagingData.empty())
+                }
+            }.collect {
+                _state.value = it.map { pagingData ->
+                    pagingData.map(Icon::mapToUI)
+
+                }.first()
+            }
+        }
     }
 
     fun onToggleSearch() {

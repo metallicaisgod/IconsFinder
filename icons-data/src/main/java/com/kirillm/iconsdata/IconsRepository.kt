@@ -12,7 +12,7 @@ class IconsRepository @Inject constructor(
     private val iconsPagingSourceFactory: IconsPagingSource.Factory,
 ) {
 
-    suspend fun getIcons(query: String): Flow<PagingData<Icon>> = Pager(
+    fun getIcons(query: String): Flow<PagingData<Icon>> = Pager(
         config = PagingConfig(
             pageSize = 20,
             enablePlaceholders = false,

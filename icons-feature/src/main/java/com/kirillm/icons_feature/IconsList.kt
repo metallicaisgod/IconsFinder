@@ -2,9 +2,7 @@ package com.kirillm.icons_feature
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -29,7 +27,7 @@ internal fun IconList(
     val lazyListState = rememberLazyGridState()
 
     Box(Modifier.fillMaxSize()) {
-        LazyVerticalGrid(columns = GridCells.Fixed(2), state = lazyListState) {
+        LazyVerticalGrid(columns = GridCells.Fixed(4), state = lazyListState) {
 
             if (pagingItems.loadState.prepend is LoadState.Loading) {
                 item { ProgressIndicator() }
@@ -60,7 +58,7 @@ internal fun Icon(
     Box(
         Modifier
             .padding(bottom = 4.dp)
-            .height(150.dp)
+            .fillMaxSize()
     ) {
         var isImageVisible by remember { mutableStateOf(true) }
         if (isImageVisible) {
@@ -73,7 +71,7 @@ internal fun Icon(
                 },
                 contentDescription = "Icon",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(150.dp)
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
